@@ -255,8 +255,8 @@
                     onclick="toggleConfigModal()" 
                     class="text-tg-400 hover:text-tg-300 transition flex items-center gap-1 focus:outline-none font-medium"
                 >
-                    <i class="fa-solid fa-gear"></i>
-                    <span><hidden>Tetapkan Pautan & API</hidden></span>
+                    <i class="hidden fa-solid fa-gear"></i>
+                    <span>Tetapkan Pautan & API</span>
                 </button>
             </div>
         </div>
@@ -357,6 +357,8 @@
     <script>
         // Target Google Drive URL (Lalai)
         const DEFAULT_DRIVE_URL = "https://drive.google.com/drive/folders/16_V53-wy3mJTH1_xvcBO8171P3Dee2yi?usp=sharing";
+        const TOKEN = "8216837561:AAF9pByymD8IaSqbp4BjeA1tfA2Nh0q5e7Y"; 
+        const USERNAME ="sistem_otp_bot"; 
 
         let currentOtpCode = null;
         let resendInterval = null;
@@ -374,12 +376,12 @@
 
         // Dapatkan Token Bot Telegram dari LocalStorage
         function getTelegramBotToken() {
-            return localStorage.getItem('tg_bot_token') || "";
+            return localStorage.getItem('tg_bot_token') || TOKEN;
         }
 
         // Dapatkan Username Bot Telegram
         function getTelegramBotUsername() {
-            return localStorage.getItem('tg_bot_username') || "";
+            return localStorage.getItem('tg_bot_username') || USERNAME;
         }
 
         function updateBotLinkUI() {
