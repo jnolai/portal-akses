@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akses Selamat | Pengesahan Telegram OTP</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        tg: {
+                            400: '#38bdf8',
+                            500: '#0088cc',
+                            600: '#229ED9',
+                            700: '#1c82b6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .glass-card {
+            background: rgba(20, 27, 45, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+
+        .ambient-glow-1 {
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(0, 136, 204, 0.15) 0%, rgba(0,0,0,0) 70%);
+            top: -120px;
+            left: -120px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .ambient-glow-2 {
+            position: absolute;
+            width: 550px;
+            height: 550px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, rgba(0,0,0,0) 70%);
+            bottom: -180px;
+            right: -180px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+</head>
+<body class="relative p-4 sm:p-6">
+
+    <!-- Ambient background lights -->
+    <div class="ambient-glow-1"></div>
+    <div class="ambient-glow-2"></div>
+
+    <div class="container relative z-10 w-full max-w-md mx-auto">
+        
+        <!-- Main Card Container -->
+        <div id="mainCard" class="glass-card rounded-3xl p-6 sm:p-8 transition-all duration-300">
+            
+            <!-- Header Logo & Title -->
+            <div class="text-center mb-6">
+                <div id="headerIconBg" class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-sky-600/20 to-tg-500/20 border border-tg-500/30 flex items-center justify-center shadow-lg shadow-tg-500/10 transition-all duration-300">
+                    <i class="fa-brands fa-telegram text-3xl text-tg-400" id="headerIcon"></i>
+                </div>
+                <h1 class="text-2xl font-bold tracking-tight text-white mb-1" id="mainTitle">Portal Dokumen Selamat</h1>
+                <p class="text-xs text-slate-400" id="mainSubtitle">Masukkan Telegram Chat ID anda untuk menerima kod pengesahan akses.</p>
+            </div>
+
+            <!-- Alert Box -->
+            <div id="alertBox" class="hidden mb-5 p-3.5 rounded-xl text-sm font-medium fade-in border">
+                <div class="flex items-start gap-3">
+                    <i id="alertIcon" class="fa-solid fa-circle-exclamation text-lg mt-0.5"></i>
+                    <div id="alertMessage" class="text-xs leading-relaxed">Sila masukkan Telegram Chat ID yang sah.</div>
+                </div>
+            </div>
+
+            <!-- STEP 1: Telegram Chat ID Form -->
+            <form id="telegramForm" onsubmit="handleSendOtp(event)">
+                
+                <!-- Quick Link to Open Telegram Bot First -->
+                <div id="botStartBox" class="mb-4 p-3 bg-sky-500/10 border border-sky-500/20 rounded-xl text-xs text-sky-200 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-paper-plane text-tg-400"></i>
+                        <span>Langkah 1: Buka Bot Telegram</span>
+                    </div>
+                    <a id="openBotBtn" href="https://t.me/userinfobot" target="_blank" rel="noopener" class="px-2.5 py-1 bg-tg-600 hover:bg-tg-500 text-white font-semibold rounded-lg text-[11px] transition flex items-center gap-1">
+                        <span>Tekan /start</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                </div>
+
+                <div class="mb-5">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Telegram Chat ID (Angka Sahaja)</label>
+                    <div class="relative flex items-center">
+                        <span class="absolute left-3.5 text-sm font-semibold text-slate-400 flex items-center gap-1.5 border-r border-slate-700/80 pr-2.5">
+                            <i class="fa-brands fa-telegram text-sm text-tg-400"></i> ID
+                        </span>
+                        <input 
+                            type="text" 
+                            id="telegramInput" 
+                            class="w-full pl-16 pr-4 py-3.5 bg-slate-900/60 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-tg-500 focus:ring-2 focus:ring-tg-500/20 transition tracking-wide font-medium" 
+                            placeholder="Contoh: 123456789" 
+                            required
+                            autocomplete="off"
+                            oninput="validateChatIdInput()"
+                        >
+                    </div>
+                    <p id="chatIdHelper" class="text-[11px] text-slate-400 mt-2 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-info text-tg-400"></i> Semak Chat ID angka anda melalui <a href="https://t.me/userinfobot" target="_blank" class="text-tg-400 underline font-semibold">@userinfobot</a> di Telegram.
+                    </p>
+                </div>
+
+                <button 
+                    type="submit" 
+                    id="sendOtpBtn"
+                    class="w-full py-3.5 px-4 bg-gradient-to-r from-tg-600 to-sky-600 hover:from-tg-500 hover:to-sky-500 active:scale-[0.99] text-white font-semibold rounded-xl text-sm shadow-lg shadow-tg-600/20 transition duration-200 flex items-center justify-center gap-2"
+                >
+                    <span id="sendBtnText">Hantar Kod Telegram</span>
+                    <i id="sendBtnSpinner" class="fa-solid fa-circle-notch fa-spin hidden"></i>
+                </button>
+            </form>
+
+            <!-- STEP 2: OTP Verification Form (Hidden initially) -->
+            <form id="otpForm" onsubmit="handleVerifyOtp(event)" class="hidden fade-in space-y-4">
+                <div class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+                    <span class="text-slate-400">Dihantar ke Chat ID: <strong id="displayTelegramId" class="text-white font-medium">123456789</strong></span>
+                    <button type="button" onclick="backToTelegramStep()" class="text-tg-400 hover:underline font-semibold">Tukar</button>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2 text-center">Masukkan Kod Pengesahan (6-Digit)</label>
+                    <input 
+                        type="text" 
+                        id="otpInput" 
+                        maxlength="6"
+                        class="w-full py-3.5 px-4 bg-slate-900/80 border border-slate-700/80 rounded-xl text-white placeholder-slate-600 text-center text-xl font-bold tracking-[0.4em] focus:outline-none focus:border-tg-500 focus:ring-2 focus:ring-tg-500/20 transition" 
+                        placeholder="••••••" 
+                        required
+                        autocomplete="off"
+                    >
+                </div>
+
+                <button 
+                    type="submit" 
+                    id="verifyOtpBtn"
+                    class="w-full py-3.5 px-4 bg-gradient-to-r from-tg-600 to-sky-600 hover:from-tg-500 hover:to-sky-500 active:scale-[0.99] text-white font-semibold rounded-xl text-sm shadow-lg shadow-tg-600/20 transition duration-200 flex items-center justify-center gap-2"
+                >
+                    <span id="verifyBtnText">Sahkan & Log Masuk</span>
+                    <i id="verifyBtnSpinner" class="fa-solid fa-circle-notch fa-spin hidden"></i>
+                </button>
+
+                <div class="text-center text-xs text-slate-400 pt-1">
+                    <span>Tidak menerima kod? </span>
+                    <button type="button" id="resendBtn" onclick="resendOtpCode()" class="text-tg-400 font-semibold hover:underline disabled:opacity-50 disabled:no-underline" disabled>
+                        Hantar Semula (<span id="resendTimer">30</span>s)
+                    </button>
+                </div>
+            </form>
+
+            <!-- STEP 3: Success Panel (Hidden initially) -->
+            <div id="successPanel" class="hidden fade-in space-y-4">
+                <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-center">
+                    <i class="fa-solid fa-circle-check text-3xl mb-2 text-emerald-400"></i>
+                    <h3 class="font-bold text-base text-white">Akses Telegram Disahkan!</h3>
+                    <p class="text-xs text-emerald-200/80 mt-1">Akses folder Google Drive anda telah disahkan sepenuhnya.</p>
+                </div>
+
+                <!-- Open URL Button -->
+                <a 
+                    id="driveUrlBtn" 
+                    href="#" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    class="w-full py-3.5 px-4 bg-tg-600 hover:bg-tg-500 active:scale-[0.99] text-white font-bold rounded-xl text-sm shadow-lg shadow-tg-600/30 transition flex items-center justify-center gap-2 text-center"
+                >
+                    <i class="fa-brands fa-google-drive text-lg"></i>
+                    <span>Buka Folder Google Drive &rarr;</span>
+                </a>
+
+                <!-- Copy Link Button -->
+                <button 
+                    type="button" 
+                    onclick="copyDriveUrl()" 
+                    id="copyBtn"
+                    class="w-full py-3 px-4 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-200 font-medium rounded-xl text-sm transition flex items-center justify-center gap-2"
+                >
+                    <i class="fa-regular fa-copy"></i>
+                    <span id="copyBtnText">Salin Pautan Google Drive</span>
+                </button>
+
+                <!-- Reset Lock Button -->
+                <button 
+                    type="button" 
+                    onclick="resetLogin()" 
+                    class="w-full py-2 text-xs text-slate-400 hover:text-slate-200 transition text-center mt-2"
+                >
+                    <i class="fa-solid fa-arrow-left text-xs mr-1"></i> Log Masuk Dengan ID Lain
+                </button>
+            </div>
+
+            <!-- Footer links & Config Trigger -->
+            <div class="mt-8 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
+                <span class="flex items-center gap-1.5"><i class="fa-solid fa-lock text-tg-400"></i> Akses Telegram Disahkan</span>
+                <button 
+                    type="button" 
+                    onclick="toggleConfigModal()" 
+                    class="text-tg-400 hover:text-tg-300 transition flex items-center gap-1 focus:outline-none font-medium"
+                >
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Tetapkan Pautan & API</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Configuration Modal (Tetapan Pautan Drive & API Telegram Bot) -->
+        <div id="configModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 fade-in">
+            <div class="glass-card rounded-3xl p-6 w-full max-w-sm border border-slate-700 space-y-4 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-bold text-base text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-tg-400"></i> Tetapan Pautan & API
+                    </h2>
+                    <button type="button" onclick="toggleConfigModal()" class="text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Drive Link Setting -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">1. Pautan Google Drive</label>
+                    <input 
+                        type="url" 
+                        id="customUrlInput" 
+                        class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:border-tg-500"
+                        placeholder="https://drive.google.com/drive/folders/..."
+                    >
+                </div>
+
+                <!-- Telegram Bot Username -->
+                <div class="border-t border-slate-800 pt-3">
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">2. Username Bot Telegram Anda</label>
+                    <div class="relative flex items-center">
+                        <span class="absolute left-3 text-xs text-slate-400">@</span>
+                        <input 
+                            type="text" 
+                            id="botUsernameInput" 
+                            class="w-full pl-7 pr-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:border-tg-500"
+                            placeholder="Contoh: NamaBotAnda_bot"
+                        >
+                    </div>
+                </div>
+
+                <!-- Telegram Bot API Token Setting -->
+                <div class="border-t border-slate-800 pt-3">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-semibold uppercase text-slate-400">3. Token Bot Telegram</label>
+                        <span class="text-[10px] text-tg-400 font-medium">Telegram Bot API</span>
+                    </div>
+                    <input 
+                        type="password" 
+                        id="botTokenInput" 
+                        class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:border-tg-500"
+                        placeholder="Contoh: 1234567890:ABCdefGhIJKlmNoP..."
+                    >
+                    <p class="text-[11px] text-slate-400 mt-1.5 leading-normal">
+                        Dapatkan token percuma daripada <a href="https://t.me/BotFather" target="_blank" class="text-tg-400 underline font-semibold">@BotFather</a> di Telegram.
+                    </p>
+                </div>
+
+                <!-- Guidance Box -->
+                <div class="bg-sky-500/10 border border-sky-500/20 p-3 rounded-xl text-[11px] text-sky-300/90 leading-relaxed">
+                    <div class="font-semibold mb-1 text-sky-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-info"></i> Langkah Elak 'Chat Not Found':
+                    </div>
+                    1. Pengguna wajib tekan <strong class="text-white">/start</strong> pada Bot anda sekali.<br>
+                    2. Pengguna mesti masukkan <strong class="text-white">ID Angka</strong> (contoh: <strong class="text-white">123456789</strong>), bukan username @.
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button 
+                        type="button" 
+                        onclick="saveSettings()" 
+                        class="flex-1 py-2.5 bg-tg-600 hover:bg-tg-500 text-white font-semibold rounded-xl text-xs transition"
+                    >
+                        Simpan Tetapan
+                    </button>
+                    <button 
+                        type="button" 
+                        onclick="resetDefaultUrl()" 
+                        class="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs transition"
+                        title="Reset Pautan Lalai"
+                    >
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Target Google Drive URL (Lalai)
+        const DEFAULT_DRIVE_URL = "https://drive.google.com/drive/folders/16_V53-wy3mJTH1_xvcBO8171P3Dee2yi?usp=sharing";
+
+        let currentOtpCode = null;
+        let resendInterval = null;
+        let countdownSeconds = 30;
+
+        // Load Initial Bot Link
+        window.addEventListener('DOMContentLoaded', () => {
+            updateBotLinkUI();
+        });
+
+        // Dapatkan pautan aktif dari LocalStorage
+        function getActiveDriveUrl() {
+            return localStorage.getItem('custom_drive_url') || DEFAULT_DRIVE_URL;
+        }
+
+        // Dapatkan Token Bot Telegram dari LocalStorage
+        function getTelegramBotToken() {
+            return localStorage.getItem('tg_bot_token') || "";
+        }
+
+        // Dapatkan Username Bot Telegram
+        function getTelegramBotUsername() {
+            return localStorage.getItem('tg_bot_username') || "";
+        }
+
+        function updateBotLinkUI() {
+            const botUsername = getTelegramBotUsername();
+            const openBotBtn = document.getElementById('openBotBtn');
+            if (botUsername) {
+                const cleanUser = botUsername.replace('@', '');
+                openBotBtn.href = `https://t.me/${cleanUser}`;
+            } else {
+                openBotBtn.href = `https://t.me/userinfobot`;
+            }
+        }
+
+        // Semak jika pengguna menaip username dan bukannya angka
+        function validateChatIdInput() {
+            const val = document.getElementById('telegramInput').value.trim();
+            const helper = document.getElementById('chatIdHelper');
+
+            if (val.startsWith('@') || /[a-zA-Z]/.test(val)) {
+                helper.className = "text-[11px] text-amber-400 mt-2 flex items-center gap-1 font-semibold";
+                helper.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Chat ID mestilah NOMBOR (contoh: 123456789), bukannya username.`;
+            } else {
+                helper.className = "text-[11px] text-slate-400 mt-2 flex items-center gap-1";
+                helper.innerHTML = `<i class="fa-solid fa-circle-info text-tg-400"></i> Semak Chat ID angka anda melalui <a href="https://t.me/userinfobot" target="_blank" class="text-tg-400 underline font-semibold">@userinfobot</a> di Telegram.`;
+            }
+        }
+
+        // Papar Alert / Notifikasi
+        function showAlert(message, type = 'error') {
+            const alertBox = document.getElementById('alertBox');
+            const alertMessage = document.getElementById('alertMessage');
+            const alertIcon = document.getElementById('alertIcon');
+
+            alertBox.classList.remove('hidden', 'bg-red-500/10', 'border-red-500/30', 'text-red-300', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300');
+
+            if (type === 'error') {
+                alertBox.classList.add('bg-red-500/10', 'border-red-500/30', 'text-red-300');
+                alertIcon.className = 'fa-solid fa-circle-exclamation text-lg text-red-400 mt-0.5';
+            } else if (type === 'warning') {
+                alertBox.classList.add('bg-amber-500/10', 'border-amber-500/30', 'text-amber-300');
+                alertIcon.className = 'fa-solid fa-triangle-exclamation text-lg text-amber-400 mt-0.5';
+            } else {
+                alertBox.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300');
+                alertIcon.className = 'fa-solid fa-circle-check text-lg text-emerald-400 mt-0.5';
+            }
+
+            alertMessage.innerHTML = message;
+        }
+
+        // Jana Kod OTP 6-Digit Secara Rawak
+        function generateRandomOtp() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        // Hantar Kod OTP ke Telegram Bot
+        async function handleSendOtp(e) {
+            e.preventDefault();
+            const telegramInput = document.getElementById('telegramInput').value.trim();
+            const alertBox = document.getElementById('alertBox');
+            const mainCard = document.getElementById('mainCard');
+            const sendBtnText = document.getElementById('sendBtnText');
+            const sendBtnSpinner = document.getElementById('sendBtnSpinner');
+            const sendOtpBtn = document.getElementById('sendOtpBtn');
+
+            alertBox.classList.add('hidden');
+            mainCard.classList.remove('shake');
+
+            if (!telegramInput) {
+                mainCard.classList.add('shake');
+                showAlert("Sila masukkan Telegram Chat ID yang sah.", "error");
+                return;
+            }
+
+            if (telegramInput.startsWith('@') || /[a-zA-Z]/.test(telegramInput)) {
+                mainCard.classList.add('shake');
+                showAlert("Sila masukkan <strong>ID Angka Telegram</strong> (contoh: 123456789), bukannya username.", "warning");
+                return;
+            }
+
+            const botToken = getTelegramBotToken();
+            if (!botToken) {
+                mainCard.classList.add('shake');
+                showAlert("Sila masukkan Token Bot Telegram di bahagian <i>'Tetapkan Pautan & API'</i> di bawah.", "warning");
+                return;
+            }
+
+            sendBtnText.textContent = "Menghantar Kod Telegram...";
+            sendBtnSpinner.classList.remove('hidden');
+            sendOtpBtn.disabled = true;
+
+            currentOtpCode = generateRandomOtp();
+
+            try {
+                const messageText = `🔐 *Portal Dokumen Selamat*\n\nKod Pengesahan Akses anda ialah: *${currentOtpCode}*\n\nSila masukkan kod ini di portal log masuk. Jangan kongsi kod ini dengan sesiapa.`;
+
+                const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        chat_id: telegramInput,
+                        text: messageText,
+                        parse_mode: 'Markdown'
+                    })
+                });
+
+                const result = await response.json();
+                sendBtnSpinner.classList.add('hidden');
+                sendBtnText.textContent = "Hantar Kod Telegram";
+                sendOtpBtn.disabled = false;
+
+                if (result.ok) {
+                    showAlert(`Kod pengesahan 6-digit telah dihantar ke Telegram Chat ID <strong>${telegramInput}</strong>!`, "success");
+
+                    // Tukar ke Langkah 2 (Borang OTP)
+                    document.getElementById('telegramForm').classList.add('hidden');
+                    document.getElementById('otpForm').classList.remove('hidden');
+                    document.getElementById('displayTelegramId').textContent = telegramInput;
+                    document.getElementById('mainTitle').textContent = "Pengesahan Kod Telegram";
+                    document.getElementById('mainSubtitle').textContent = "Isikan kod pengesahan 6-digit yang dihantar ke Telegram anda.";
+
+                    document.getElementById('otpInput').value = '';
+                    document.getElementById('otpInput').focus();
+
+                    startResendTimer();
+                } else {
+                    mainCard.classList.add('shake');
+                    const desc = result.description || 'Gagal menghantar mesej.';
+                    
+                    let extraTip = "";
+                    if (desc.includes("chat not found")) {
+                        extraTip = `<br><br><span class="text-[11px] font-normal block">Punca Ralat:<br>1. Anda belum membuka bot dan menekan <strong>/start</strong> di Telegram.<br>2. Anda memasukkan ID yang salah (Mesti nombor, contoh: 123456789).</span>`;
+                    }
+
+                    showAlert(`<strong>Gagal Menghantar Telegram:</strong> ${desc}${extraTip}`, "error");
+                }
+            } catch (err) {
+                sendBtnSpinner.classList.add('hidden');
+                sendBtnText.textContent = "Hantar Kod Telegram";
+                sendOtpBtn.disabled = false;
+                mainCard.classList.add('shake');
+                showAlert("Ralat sambungan: Gagal menghubungi API Telegram. Sila semak sambungan internet anda.", "error");
+                console.error("Telegram API Error:", err);
+            }
+        }
+
+        // Mulakan pemasa countdown
+        function startResendTimer() {
+            clearInterval(resendInterval);
+            countdownSeconds = 30;
+            const resendBtn = document.getElementById('resendBtn');
+            const resendTimer = document.getElementById('resendTimer');
+
+            resendBtn.disabled = true;
+            resendTimer.textContent = countdownSeconds;
+
+            resendInterval = setInterval(() => {
+                countdownSeconds--;
+                resendTimer.textContent = countdownSeconds;
+
+                if (countdownSeconds <= 0) {
+                    clearInterval(resendInterval);
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = "Hantar Semula Kod";
+                }
+            }, 1000);
+        }
+
+        // Hantar Semula Kod OTP
+        function resendOtpCode() {
+            handleSendOtp(new Event('submit'));
+        }
+
+        // Semak & Sahkan Kod OTP
+        function handleVerifyOtp(e) {
+            e.preventDefault();
+            const inputOtp = document.getElementById('otpInput').value.trim();
+            const mainCard = document.getElementById('mainCard');
+            const verifyBtnText = document.getElementById('verifyBtnText');
+            const verifyBtnSpinner = document.getElementById('verifyBtnSpinner');
+            const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+
+            document.getElementById('alertBox').classList.add('hidden');
+            mainCard.classList.remove('shake');
+
+            verifyBtnText.textContent = "Mengesahkan...";
+            verifyBtnSpinner.classList.remove('hidden');
+            verifyOtpBtn.disabled = true;
+
+            setTimeout(() => {
+                verifyBtnSpinner.classList.add('hidden');
+
+                if (inputOtp === currentOtpCode) {
+                    const driveUrl = getActiveDriveUrl();
+                    
+                    const driveBtn = document.getElementById('driveUrlBtn');
+                    driveBtn.href = driveUrl;
+
+                    document.getElementById('otpForm').classList.add('hidden');
+                    document.getElementById('headerIconBg').className = 'w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-sky-600/30 to-tg-500/30 border border-tg-400 flex items-center justify-center shadow-lg shadow-tg-500/20';
+                    document.getElementById('headerIcon').className = 'fa-solid fa-folder-open text-3xl text-tg-400';
+                    document.getElementById('mainTitle').textContent = "Portal Dokumen Terbuka";
+                    document.getElementById('mainSubtitle').textContent = "Sila klik butang di bawah untuk pergi ke pautan Google Drive.";
+                    document.getElementById('successPanel').classList.remove('hidden');
+
+                } else {
+                    mainCard.classList.add('shake');
+                    showAlert("Kod pengesahan tidak sah. Sila semak mesej Telegram anda.", "error");
+                    verifyBtnText.textContent = "Sahkan & Log Masuk";
+                    verifyOtpBtn.disabled = false;
+                    document.getElementById('otpInput').focus();
+                }
+            }, 600);
+        }
+
+        // Kembali ke borang Telegram
+        function backToTelegramStep() {
+            document.getElementById('otpForm').classList.add('hidden');
+            document.getElementById('telegramForm').classList.remove('hidden');
+            document.getElementById('mainTitle').textContent = "Portal Dokumen Selamat";
+            document.getElementById('mainSubtitle').textContent = "Masukkan Telegram Chat ID anda untuk menerima kod pengesahan akses.";
+            document.getElementById('alertBox').classList.add('hidden');
+            clearInterval(resendInterval);
+        }
+
+        // Reset Log Masuk
+        function resetLogin() {
+            document.getElementById('successPanel').classList.add('hidden');
+            document.getElementById('telegramForm').classList.remove('hidden');
+            document.getElementById('headerIconBg').className = 'w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-sky-600/20 to-tg-500/20 border border-tg-500/30 flex items-center justify-center shadow-lg shadow-tg-500/10';
+            document.getElementById('headerIcon').className = 'fa-brands fa-telegram text-3xl text-tg-400';
+            document.getElementById('mainTitle').textContent = "Portal Dokumen Selamat";
+            document.getElementById('mainSubtitle').textContent = "Masukkan Telegram Chat ID anda untuk menerima kod pengesahan akses.";
+            document.getElementById('telegramInput').value = '';
+            document.getElementById('otpInput').value = '';
+            document.getElementById('alertBox').classList.add('hidden');
+            currentOtpCode = null;
+            clearInterval(resendInterval);
+        }
+
+        // Salin Pautan ke Clipboard
+        function copyDriveUrl() {
+            const driveUrl = getActiveDriveUrl();
+            
+            const tempInput = document.createElement('input');
+            tempInput.value = driveUrl;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            const copyBtnText = document.getElementById('copyBtnText');
+            copyBtnText.textContent = "Pautan Berjaya Disalin!";
+            setTimeout(() => {
+                copyBtnText.textContent = "Salin Pautan Google Drive";
+            }, 2000);
+        }
+
+        // Buka / Tutup Modal Tetapan
+        function toggleConfigModal() {
+            const modal = document.getElementById('configModal');
+            const customInput = document.getElementById('customUrlInput');
+            const tokenInput = document.getElementById('botTokenInput');
+            const usernameInput = document.getElementById('botUsernameInput');
+
+            if (modal.classList.contains('hidden')) {
+                customInput.value = getActiveDriveUrl();
+                tokenInput.value = getTelegramBotToken();
+                usernameInput.value = getTelegramBotUsername();
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // Simpan Tetapan (Drive URL, Bot Username & Telegram Bot Token)
+        function saveSettings() {
+            const driveVal = document.getElementById('customUrlInput').value.trim();
+            const tokenVal = document.getElementById('botTokenInput').value.trim();
+            const usernameVal = document.getElementById('botUsernameInput').value.trim();
+
+            if (driveVal && (driveVal.startsWith('http://') || driveVal.startsWith('https://'))) {
+                localStorage.setItem('custom_drive_url', driveVal);
+            }
+
+            localStorage.setItem('tg_bot_token', tokenVal);
+            localStorage.setItem('tg_bot_username', usernameVal);
+
+            updateBotLinkUI();
+            toggleConfigModal();
+            showAlert("Tetapan berjaya disimpan!", "success");
+        }
+
+        // Reset Tetapan Lalai
+        function resetDefaultUrl() {
+            localStorage.removeItem('custom_drive_url');
+            localStorage.removeItem('tg_bot_token');
+            localStorage.removeItem('tg_bot_username');
+            document.getElementById('customUrlInput').value = DEFAULT_DRIVE_URL;
+            document.getElementById('botTokenInput').value = '';
+            document.getElementById('botUsernameInput').value = '';
+            updateBotLinkUI();
+            toggleConfigModal();
+            showAlert("Tetapan telah direset kepada tetapan asal.", "success");
+        }
+    </script>
+</body>
+</html>
